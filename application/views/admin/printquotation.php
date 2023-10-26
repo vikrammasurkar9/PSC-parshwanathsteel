@@ -1,0 +1,270 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+<div class="page-wrapper">
+    <div class="content">
+        <div class="row">
+            <div class="col-sm-12 pull-right">
+            <button class="btn btn-success pull-right" onclick="printDiv('printDiv_Invoice')" style=""> <i class="fa fa-print fa-lg"></i> Print</button>
+            
+            <button class="btn btn-success pull-right" onclick="saveAsImage('printDiv_Invoice')" style="margin-right:20px"> <i class="fa fa-file-image-o fa-lg"></i> Image</button>            
+            <button class="btn btn-success pull-right" onclick="sendonwhatsapp('printDiv_Invoice')" style="margin-right:20px"> <i class="fa fa-whatsapp fa-lg"></i> Send</button>            
+            <!-- <button class="btn btn-success pull-right" onclick="saveAsPDF('printDiv_Invoice')" style="margin-right:20px"> <i class="fa fa-file-pdf-o fa-lg"></i> PDF</button>             -->
+            </div>
+        </div>
+        <div class="card-box">            
+            <div id="printDiv_Invoice" style="width:1000px; background-color:white; color:black;">
+                <style>
+                    tr.border_bottom td {
+                    border-bottom:groove;
+                    }
+                </style>
+                <div style="border-style:groove;padding:10px;">                   
+                    <!-- Print Header  -->
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:20%">
+                            <img src="<?= base_url($firm->firmicon == "" ? "assets/PIPL":'assets/'.$firm->firmicon.'.png');?>" alt="<?= $firm->firm;?>"
+                                    height="120"  style="margin:auto;display:block">
+                            </td>
+                            <td style="width:60%">
+                                <table style="width:100%">
+                                    <tr>
+                                        <td style="width:1-0%;text-align:center;">
+                                        <h1 style="color:<?= $firm->firmcolor == '' ? '#F89504' : $firm->firmcolor; ?>;" ><?= $firm->firm;?></h1>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:center;">
+                                            <?= $firm->address;?><br />
+                                            Email - <?= $firm->email;?><br />
+                                            Tel - <?= $firm->telephone;?> Mob - <?= $firm->mobileno;?><br />
+                                            <b>GSTIN - <?= $firm->gst;?></b>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style="width:20%">
+                                <!-- <img src="<?= base_url('assets/icon/psc.png');?>" height="120" alt=""
+                                    style="margin:auto;display:block"> -->
+                            </td>
+                        </tr>
+                    </table>
+                    <hr style="background-color:gray">
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:1-0%;text-align:center;">
+                                <h3><u> QUOTATION </u></h3>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="width:100%">
+                        <tr class="border_bottom" style="width:100%;">
+                            <td style="width:50%;text-align:left; vertical-align:top;">
+                            <h4>Firm : <b><?= $data->firmname; ?></b> </h4>
+                                <?php 
+                                if($data->username !=""){
+                                    echo "<h5>Name : ". $data->username."</h5>";
+                                }
+                                ?>
+                                <?php 
+                                if($data->mobileno !=""){
+                                    echo "<h5>Mob No. : <a href='https://wa.me/91".str_replace(' ', '', $data->mobileno)."' target='_blank' title='Click to chat'>". $data->mobileno."</a></h5>";
+                                }
+                                ?>
+                                <?php 
+                                if($data->address !="" || $data->city !=""){
+                                    echo "<h5>Address. : ". $data->address."  ".$data->city."</h5>";
+                                }
+                        
+                                ?>
+                                
+                            </td>
+                            <td style="width:50%;text-align:right;margin-right:100px;vertical-align:top;"><br/>
+                                <b> Date : <?= date_format(date_create($data->requestdate), 'd/m/Y') ?> </b>
+                                <?php $quotationno = substr("000{$data->mbqno}", -4); ?>
+                                <h5>Quotation No : PIPL/MBQ/<?= $quotationno; ?>/<?= date("d-m-y", strtotime($data->createdon)); ?></h5>
+                                <?php if($data->narration !==""){
+                                ?>
+                                <b>Lead Narration : <?= $data->narration;?></b>
+                            <?php } ?>
+                            </td>
+                        </tr>
+                    </table>   
+                    <br>                 
+                    <table style="width:100%; border: 2px solid gray;border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="border: 2px solid gray;border-collapse: collapse;text-align: center">No</th>
+                                <th style="border: 2px solid gray;border-collapse: collapse;padding-left:2px">Category</th>
+                                <th style="border: 2px solid gray;border-collapse: collapse;padding-left:2px">Product</th>
+                                <th style="border: 2px solid gray;border-collapse: collapse;padding-right:2px; text-align:right;">Req</th>
+                                <th style="border: 2px solid gray;border-collapse: collapse;padding-left:2px">Unit</th>
+                                <th style="border: 2px solid gray;border-collapse: collapse;padding-right:2px; text-align:right;">Quantity</th>
+                              
+                                <?php
+                                    foreach ($producers as $producer) { 
+                                        echo "<th style='border:2px solid gray;padding:0.5em;border-collapse: collapse;text-align:center'>" . $producer->name . "</th>";
+                                } ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                                $count = 1;
+                                $qbpcount = 1;
+                                $totalWeight = 0;
+                                foreach ($result as $row) {
+                                   
+                                    $totalWeight += $row->weight;
+                                    ?>
+                                <tr>
+                                    <td style="border: 2px solid gray;border-collapse: collapse;text-align: center;vertical-align:center;"><?php echo $count; ?></td>
+                                    <td style="border: 2px solid gray;border-collapse: collapse;padding-left:2px;vertical-align:center;"><?= $row->productname; ?></td>
+                                    <td style="border: 2px solid gray;border-collapse: collapse;padding-left:2px;vertical-align:center;"><?= $row->sizeinmm; ?></td>
+                                    <td style="border: 2px solid gray;border-collapse: collapse;padding-right:5px; text-align:right;vertical-align:center;"><?= $row->estimationin == "Kgs" ? "" : $row->quantities; ?></td>                                   
+                                    <td style="border: 2px solid gray;border-collapse: collapse;padding-left:2px;vertical-align:center;"><?= $row->estimationin; ?></td>
+                                    <td style="border: 2px solid gray;border-collapse: collapse;padding-right:2px; text-align:right;vertical-align:center;"><?= $row->billingin == "Kgs" ? number_format($row->weight, 1)."  ".$row->billingin : $row->quantities."  ".$row->billingin; ?></td>
+                                    
+                                    <?php
+                                                foreach ($producers as $producer) {
+                                                    echo "<td style='border: 2px solid gray;padding:0.5em;border-collapse: collapse;padding-right:2px; text-align:right;vertical-align:center;'>";
+                                                    echo "<table style='width:100%;border-collapse: collapse;border: 0px solid gray;padding:0.5em;' >";
+                                                    foreach ($brands as $brand) {
+                                                        
+                                                        if($brand->producerid == $producer->id)
+                                                        {
+                                                            
+                                                            foreach ($brandproducts as $brandproduct) {
+                                                                if($brandproduct->bid == $brand->id){
+                                                                    if($brandproduct->pwid == $row->pwid && $brandproduct->pwid == $row->pwid){
+                                                                        
+                                                                        foreach ($quotationbrandprices as $qbp) {
+                                                                            
+                                                                            if($qbp->bid == $brand->id && $qbp->pwid == $row->pwid && $qbp->rate > 0)
+                                                                            {
+                                                                                
+                                                                                
+                                                                                echo "<tr style='padding:8px;'>";
+                                                                                echo "<td style='width:40%;padding:8px; text-align:left; border: 0px solid #000;padding:0.5em; border-collapse: collapse'>" . $brand->name ."</td>";
+                                                                                echo "<td style='width:30%;padding:8px; text-align:right;border: 0px solid #000;padding:0.5em;border-collapse: collapse'> <span style='font-style:bold'> &#8377;" . number_format($qbp->rate, 2)."/". $row->billingin. "</span> </td>";
+                                                                                echo "</tr>";
+                                                                               
+                                                                                $qbpcount++;
+                                                                                
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    echo "</table>";
+                                                    echo "</td>";
+                                                } ?>
+                                </tr>
+                                <?php ++$count;
+                                }?>
+                                <tr>
+                                    <td style='border: 2px solid gray;border-collapse: collapse;padding-right:2px; text-align:right;' colspan="5" style="text-align:right"><b>Total Weight:</b></td>
+                                    <td style='border: 2px solid gray;border-collapse: collapse;padding-right:2px; text-align:right;'><?= number_format($totalWeight, 1); ?> Kg</td>
+                                    <td style='border: 2px solid gray;border-collapse: collapse;padding-right:2px; text-align:right;' colspan="4"></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                    <hr style="background-color:gray">
+                    <?php $this->load->view('admin/printfooter');?>
+            </div>
+        </div>
+    </div>		
+    <!-- <a class="btn btn-danger pull-left" href="<?= base_url('admin/printrequest/'.$id); ?>" style="color:white;" ><i class="fa fa-arrow-left fa-lg"></i> Lead</a> -->
+    <?php 
+                    $name = $_COOKIE['name'];
+                    if($name == "ChetanOswal"){
+                ?>
+	<a class="btn btn-danger pull-left" href="<?= base_url('admin/quotation/'.$id); ?>" style="color:white;margin-left:10px;" ><i class="fa fa-arrow-left fa-lg"></i> Edit Multiple Brand Quotation</a>
+    <?php } ?>
+	<a class="btn btn-danger pull-right" href="<?= base_url('admin/squotation/'.$id); ?>" style="color:white;" ><i class="fa fa-arrow-right fa-lg"></i> Single Brand Quotation</a>
+</div>
+<?php 
+    date_default_timezone_set('Asia/Kolkata');
+    $now = date('Y-m-d H:i:s'); 
+    ?>
+<script>
+        function sendonwhatsapp(divName , ask = 'Yes') {
+            // var confirmation = confirm("are you sure you want to send on whatsapp ?");
+            var confirmation = true;
+        if (ask == 'Yes')
+            confirmation = confirm("are you sure you want to send on whatsapp ?");
+            if (confirmation) {
+            html2canvas([document.getElementById(divName)], {
+            onrendered: function(canvas) {
+            document.body.appendChild(canvas);
+            var data = canvas.toDataURL('image/png');       
+            $.ajax({
+                    type:'POST',
+                    url:'<?= base_url('admin/sendQuotation');?>',
+                    data: {'img': data, 'id': <?= $id ?>,'mobileno':<?= $data->mobileno ?>},
+                    success:function(html){
+                        const context = canvas.getContext('2d');
+                        context.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                });
+            }
+        });
+        }
+    }
+</script>
+<script>
+    function printDiv(divName) {
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+
+        document.body.innerHTML = printContents;
+
+        window.print();
+
+        document.body.innerHTML = originalContents;
+    }
+    
+    function saveAsImage(divName)
+    {
+        html2canvas([document.getElementById(divName)], {
+            onrendered: function (canvas) {
+        var a = document.createElement('a');
+        // toDataURL defaults to png, so we need to request a jpeg, then convert for file download.
+        a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+        a.download = '<?= "QT_".substr($data->firmname,0,11)."".date_format(date_create($data->createdon), 'ymd') ?>.jpg';
+        a.click();
+      }
+});
+    }
+
+    function saveAsPDF(divName)
+    {
+        html2canvas([document.getElementById(divName)], {
+            onrendered: function (canvas) {
+        
+        var imgData = canvas.toDataURL('image/png');
+                var doc = new jsPDF("l", "mm", "a4");
+                doc.addImage(imgData, 'PNG', 10, 10);
+                var name = '<?= "QT_".substr($data->firmname,0,11)."".date_format(date_create($data->createdon), 'ymd') ?>.pdf';
+                doc.save(name);
+
+        
+      }
+});
+    }
+    
+</script>
+<?php
+
+if(isset($_GET["send"]))
+{
+
+    $send = $_GET['send']; 
+    if($_GET['send']=='Yes')
+    {
+        echo "<script>sendonwhatsapp('printDiv_Invoice', 'no');</script>";
+    }
+}
+?>
