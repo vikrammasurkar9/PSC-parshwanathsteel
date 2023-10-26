@@ -7,7 +7,7 @@ pipeline
 
 	stages{
 		stage('deploy to remote'){
-			step{
+			steps{
 				sh 'scp -r ${WORKSPACE}/* root@{staging_server}:/var/www/html/parshwnath/'
 			}
 		}
